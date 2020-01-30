@@ -35,7 +35,7 @@ app.get('/', (_, res) => {
 
 app.post('/register', (req, res) => {
     const user = req.body;
-    console.log(user);
+    console.log(req);
     usersdb.collection('users').findOne({email: user.email}, (err, searchedUser) => {
         if (err) {
             return res.sendStatus(500);
