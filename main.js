@@ -5,6 +5,7 @@ const MongoClient = require('mongodb').MongoClient;
 const ObjectID = require('mongodb').ObjectID;
 
 var usersdb;
+var productsdb;
 
 const app = express();
 app.use(function(req, res, next) {
@@ -22,6 +23,8 @@ MongoClient.connect('mongodb+srv://dmi3z:n2zk8hp60l@cluster0-gqqqu.mongodb.net/t
         return console.log(err);
     }
     usersdb = database.db('users');
+    productsdb = database.db('products');
+
     app.listen(port);
     console.log('API app started! Port: ', port);
     console.log('2. Connection to DB was success!');
@@ -35,7 +38,6 @@ app.get('/', (_, res) => {
 
 app.post('/register', (req, res) => {
     const user = req.body;
-    console.log(req);
     usersdb.collection('users').findOne({email: user.email}, (err, searchedUser) => {
         if (err) {
             return res.sendStatus(500);
@@ -58,6 +60,20 @@ app.post('/register', (req, res) => {
     })
 });
 
+app.post('/auth', (req, res) => {
+    const user = req.body;
+    usersdb.collection('users').findOne({ email: user.email, password: user.password }, (err, searchedUser) => {
+        if (err) {
+            return res.sendStatus(500);
+        }
+        if (searchedUser) {
+            return res.send(searchedUser._id);
+        } else {
+            return res.sendStatus(404);
+        }
+    })
+});
+
 app.get('/user', (req, res) => {
     const id = req.query.id;
     usersdb.collection('users').findOne({ _id: ObjectID(id) }, (err, searchedUser) => {
@@ -73,3 +89,47 @@ app.get('/user', (req, res) => {
     });
 });
 
+app.get('/products', (_, res) => {
+    productsdb.collection('products').find().toArray((err, result) => {
+        if (err) {
+            return res.sendStatus(500);
+        }
+        if (result) {
+            res.send(JSON.stringify(result));
+        } else {
+            res.sendStatus(404);
+        }
+    })
+});
+
+app.post('/products', (req, res) => {
+    const product = req.body;
+    const productToSave = {
+        name: product.name,
+        price: product.price,
+        description: product.description,
+        photo: product.photo
+    };
+    productsdb.collection('products').insertOne(productToSave, (err, result) => {
+        if (err) {
+            return res.sendStatus(500);
+        }
+        if (result) {
+            res.send(result.insertedId);
+        } else {
+            res.sendStatus(401);
+        }
+    });
+});
+
+app.post('/product', (req, res) => {
+    const product = req.body;
+    const id = product.id;
+    delete product.id;
+    tasksdb.collection('products').updateOne({_id: ObjectID(id)}, {$set: {...product } }, (err) => {
+        if (err) {
+            return res.sendStatus(500);
+        }
+        return res.send(JSON.stringify(product));
+    });
+});
