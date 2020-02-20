@@ -126,10 +126,23 @@ app.post('/product', (req, res) => {
     const product = req.body;
     const id = product.id;
     delete product.id;
-    tasksdb.collection('products').updateOne({_id: ObjectID(id)}, {$set: {...product } }, (err) => {
+    productsdb.collection('products').updateOne({_id: ObjectID(id)}, {$set: {...product } }, (err) => {
         if (err) {
             return res.sendStatus(500);
         }
         return res.send(JSON.stringify(product));
     });
+});
+
+
+app.delete('/product', (req, res) => {
+    const id = req.query.id;
+    if (id) {
+        productsdb.collection('products').deleteOne({ _id: ObjectID(id)}, (err) => {
+            if (err) {
+                return res.sendStatus(500);
+            }
+            res.sendStatus(200);
+        });  
+    }
 });
