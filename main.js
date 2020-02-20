@@ -125,7 +125,9 @@ app.post('/products', (req, res) => {
 app.post('/product', (req, res) => {
     const product = req.body;
     const id = product.id;
+    console.log(id);
     delete product.id;
+    console.log(product);
     productsdb.collection('products').updateOne({_id: ObjectID(id)}, {$set: {...product } }, (err) => {
         if (err) {
             return res.sendStatus(500);
